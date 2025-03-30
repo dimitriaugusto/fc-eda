@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
+	"time"
 
 	"github.com.br/devfullcycle/fc-ms-wallet/internal/database"
 	"github.com.br/devfullcycle/fc-ms-wallet/internal/event"
@@ -18,14 +20,40 @@ import (
 	"github.com.br/devfullcycle/fc-ms-wallet/pkg/uow"
 	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/mysql"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 func main() {
-	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", "root", "root", "mysql", "3306", "wallet"))
+
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", "root", "root", "mysql", "3306", "wallet")
+	fmt.Println("Connecting to MySQL with DSN:", dsn)
+
+	dbUrl := "mysql://root:root@tcp(mysql:3306)/wallet"
+	fmt.Println("Connecting to MySQL with URL:", dbUrl)
+
+	waitForMySQL(dsn)
+
+	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		panic(err)
 	}
 	defer db.Close()
+
+	m, err := migrate.New(
+		"file://db/migrations",
+		dbUrl,
+	)
+	if err != nil {
+		log.Fatal("Failed to initialize migrate:", err)
+	}
+
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		log.Fatal("Migration failed:", err)
+	}
+
+	log.Println("Migrations applied successfully!")
 
 	configMap := ckafka.ConfigMap{
 		"bootstrap.servers": "kafka:29092",
@@ -68,4 +96,19 @@ func main() {
 
 	fmt.Println("Server is running")
 	webserver.Start()
+}
+
+func waitForMySQL(dsn string) {
+	for {
+		db, err := sql.Open("mysql", dsn)
+		if err == nil {
+			err = db.Ping()
+			db.Close()
+		}
+		if err == nil {
+			break
+		}
+		fmt.Println("Waiting for MySQL to be ready...")
+		time.Sleep(2 * time.Second)
+	}
 }
