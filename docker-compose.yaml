@@ -7,10 +7,31 @@ services:
     ports:
       - 8080:8080
     depends_on:
-      - mysql
+      - mysql-goapp
       - kafka
 
-  mysql:
+  nodeapp:
+    build: ./nodeapp
+    platform: linux/amd64
+    ports:
+      - 3003:3000
+    depends_on:
+      - mysql-nodeapp
+      - kafka
+
+  mysql-nodeapp:
+    image: mysql:5.7
+    platform: linux/amd64
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: balances
+      MYSQL_PASSWORD: root
+    ports:
+      - 3307:3306
+    volumes:
+      - .docker/mysql-nodeapp:/var/lib/mysql
+
+  mysql-goapp:
     image: mysql:5.7
     platform: linux/amd64
     environment:
@@ -20,7 +41,7 @@ services:
     ports:
       - 3306:3306
     volumes:
-      - .docker/mysql:/var/lib/mysql
+      - .docker/mysql-goapp:/var/lib/mysql
 
   zookeeper:
     image: "confluentinc/cp-zookeeper:6.1.0"

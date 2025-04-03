@@ -1,0 +1,11 @@
+### caro corretor,
+### para os request, use o arquivo
+### desafio-eda.http, na raiz do repo.
+
+### get update funds from balance microservice API
+GET http://localhost:3000/balances/1
+Content-Type: application/json
+
+### get update funds from balance microservice API
+GET http://localhost:3000/balances/2
+Content-Type: application/json

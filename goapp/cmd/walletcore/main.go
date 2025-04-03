@@ -27,10 +27,10 @@ import (
 
 func main() {
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", "root", "root", "mysql", "3306", "wallet")
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", "root", "root", "mysql-goapp", "3306", "wallet")
 	fmt.Println("Connecting to MySQL with DSN:", dsn)
 
-	dbUrl := "mysql://root:root@tcp(mysql:3306)/wallet"
+	dbUrl := "mysql://root:root@tcp(mysql-goapp:3306)/wallet"
 	fmt.Println("Connecting to MySQL with URL:", dbUrl)
 
 	waitForMySQL(dsn)

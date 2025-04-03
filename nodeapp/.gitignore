@@ -1,4 +1,1 @@
-.docker
-*.log
-.dist
 nodeapp/node_modules
